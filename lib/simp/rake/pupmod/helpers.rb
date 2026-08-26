@@ -367,7 +367,7 @@ class Simp::Rake::Pupmod::Helpers < Rake::TaskLib
               # determine latest version from CHANGELOG, which will present
               # for all SIMP Puppet modules
               line = File.readlines('CHANGELOG')[0]
-              match = line.match(%r{^\*\s+((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) (?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{2} \d{4})\s+(.+<.+>)(?:\s+|\s*-\s*)?(\d+\.\d+\.\d+)})
+              match = line.match(CHANGELOG_ENTRY_REGEX)
               unless match
                 raise("ERROR: Invalid CHANGELOG entry. Unable to extract version from '#{line}'")
               end

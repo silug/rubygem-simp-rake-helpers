@@ -1,3 +1,19 @@
+### 6.0.1 / 2026-08-26
+- Fixed
+  - `pkg:check_version` no longer misreads CHANGELOG versions with a two-digit
+    major. It parsed the entry with its own regex whose greedy leading match
+    consumed the first digit of the major, so `12.2.1` was read as `2.2.1` and
+    reported as out of date. It now uses
+    `Simp::ComponentInfo::CHANGELOG_ENTRY_REGEX`, the same entry regex used by
+    `Simp::ComponentInfo` and `Simp::RelChecks`. Affected every component
+    released since `10.0.0`; single-digit majors were unaffected.
+  - `pkg:check_version` now reports a malformed newest CHANGELOG entry instead
+    of skipping it. Skipping fell through to an older entry and reported that
+    entry's stale version as out of date, pointing at the wrong problem.
+  - The deprecated top-level `compare_latest_tag` task now uses the
+    `CHANGELOG_ENTRY_REGEX` constant already defined in its own class instead of
+    an inline copy that had drifted (it required a zero-padded day).
+
 ### 6.0.0 / 2026-06-25
 - Added
   - `pupmod:build` rake task using `puppet-modulebuilder`, replacing `pdk build`

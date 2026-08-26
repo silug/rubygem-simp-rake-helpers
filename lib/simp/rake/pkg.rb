@@ -9,6 +9,7 @@ require 'rake/clean'
 require 'rake/tasklib'
 require 'fileutils'
 require 'find'
+require 'simp/componentinfo'
 require 'simp/relchecks'
 require 'simp/rpm'
 require 'simp/rake/helpers/rpm_spec'
@@ -475,15 +476,35 @@ class Simp::Rake::Pkg < Rake::TaskLib
                 changelog = File.read('CHANGELOG')
                 changelog_version = nil
 
-                # Find the first date line
+                # Only the newest entry is considered; it is the one that
+                # has to agree with metadata.json.
+                #
+                # Use the shared entry regex rather than an ad hoc one: a
+                # greedy leading match swallows the first digit of a
+                # two-digit major version (12.2.1 parsed as 2.2.1).
+                #
+                # Report a malformed newest entry instead of skipping it.
+                # Skipping falls through to an older entry and blames its
+                # stale version, pointing at the wrong problem.
+                malformed_entry = nil
+
                 changelog.each_line do |line|
-                  if line =~ %r{\*.*(\d+\.\d+\.\d+)(-\d+)?\s*$}
-                    changelog_version = ::Regexp.last_match(1)
-                    break
+                  next unless line.start_with?('*')
+
+                  match = Simp::ComponentInfo::CHANGELOG_ENTRY_REGEX.match(line)
+
+                  if match
+                    changelog_version = match[3]
+                  else
+                    malformed_entry = line.strip
                   end
+
+                  break
                 end
 
-                if changelog_version
+                if malformed_entry
+                  puts "#{@pkg_name}: Error: Malformed CHANGELOG entry: '#{malformed_entry}'"
+                elsif changelog_version
                   if changelog_version == mod_version
                     puts success_msg
                   else

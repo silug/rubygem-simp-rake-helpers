@@ -34,6 +34,17 @@ describe 'Simp::ComponentInfo changelog regex' do
       expect(result[3]).to eq '3.8.0'
       expect(result[4]).to be_nil
     end
+
+    # A greedy leading match consumes the first digit of the major version,
+    # yielding '2.2.1' here. Guards the ad hoc regex that pkg:check_version
+    # used to carry.
+    it 'captures the full major version of a two-digit major without a release qualifier' do
+      line = '* Mon Aug 24 2026 Tom Smith <tom.smith@simp-project.com> - 12.2.1'
+      result = line.match(Simp::ComponentInfo::CHANGELOG_ENTRY_REGEX)
+      expect(result).not_to be_nil
+      expect(result[3]).to eq '12.2.1'
+      expect(result[4]).to be_nil
+    end
   end
 
   context 'invalid initial changelog lines' do

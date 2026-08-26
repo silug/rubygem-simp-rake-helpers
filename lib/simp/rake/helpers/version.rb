@@ -4,5 +4,5 @@ module Simp; end
 module Simp::Rake; end
 
 class Simp::Rake::Helpers
-  VERSION = '6.0.0'
+  VERSION = '6.0.1'
 end
