@@ -124,6 +124,25 @@ describe Simp::Build::ReleaseMapper do
 
       expect(mapper.get_flavor(list)['flavor']).to eq('CentOS')
     end
+
+    # The sizes match, so the flavor is a size-level candidate, but the
+    # checksums do not account for every ISO the flavor expects.  This used to
+    # fall through and report the flavor with an empty ISO list, which
+    # `build:auto` then silently skipped unpacking.
+    it 'returns nil when checksums are enabled and verification fails' do
+      mapper = described_class.new('4.2.X', mappings_path, true)
+      list   = [iso_paths['c67-false-positive']]
+
+      expect(mapper.get_flavor(list)).to be_nil
+    end
+
+    it 'does not report a flavor with an empty ISO list' do
+      mapper = described_class.new('4.2.X', mappings_path, true)
+      list   = [iso_paths['c67-false-positive']]
+      data   = mapper.get_flavor(list)
+
+      expect(data && data['isos']).not_to eq([])
+    end
   end
 
   describe '#autoscan_unpack_list' do
@@ -154,6 +173,12 @@ describe Simp::Build::ReleaseMapper do
       path_string = [iso_paths['c67-64-1'], iso_paths['c67-64-2']].join(':')
 
       expect { mapper.autoscan_unpack_list(path_string) }.to raise_error(Simp::Build::SIMPBuildException, %r{No flavors for target release})
+    end
+
+    it 'raises an error when checksums are enabled and verification fails' do
+      mapper = described_class.new('4.2.X', mappings_path, true)
+
+      expect { mapper.autoscan_unpack_list(iso_paths['c67-false-positive']) }.to raise_error(Simp::Build::SIMPBuildException, %r{No flavors for target release})
     end
   end
 end

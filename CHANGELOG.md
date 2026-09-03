@@ -20,6 +20,18 @@
   - Dropped the `simp-build-helpers` `Gemfile` entry and removed it from the
     acceptance-test build project scaffold.
 - Fixed
+  - `Simp::Build::ReleaseMapper#get_flavor` no longer reports a flavor match with
+    an empty ISO list when checksum verification fails. When the checksum branch
+    was taken (`SIMP_BUILD_checksum=true`, or a flavor with non-unique ISO sizes)
+    and verification failed, control fell through to an unconditional
+    `result = flavor` instead of moving on to the next flavor, so a corrupt or
+    unrecognized ISO was accepted as a valid match. `build:auto` iterates
+    `target_data['isos']` to drive `unpack`, so the empty list silently skipped
+    unpacking and the build continued against an empty or stale staging
+    directory -- making `SIMP_BUILD_checksum=true` worse than useless. It now
+    keeps searching and raises `No flavors for target release` when nothing
+    verifies. Inherited from `simp-build-helpers`, where the `else` appears to
+    have been lost long ago.
   - Added the missing closing quote in the "Recognized SIMP ISOs for '<release>'"
     error message header.
 

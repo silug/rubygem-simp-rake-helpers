@@ -76,8 +76,7 @@ module Simp::Build
         result_isos  = matched_isos
 
         if @do_checksums || (sizes.uniq.size != sizes.size)
-          result_isos = []
-          checksums   = data['isos'].map { |x| x['checksum'] }
+          checksums = data['isos'].map { |x| x['checksum'] }
 
           iso_checksums = matched_isos.to_h do |iso|
             puts "=== getting checksum of '#{iso}'" if @verbose
@@ -87,12 +86,14 @@ module Simp::Build
 
           matched_isos = iso_checksums.select { |_iso, sum| checksums.include?(sum) }
 
-          if matched_isos.values.all? { |sum| checksums.include?(sum) } &&
-             (matched_isos.values.uniq.size == checksums.uniq.size)
-            result      = flavor
-            result_isos = matched_isos.keys.dup
-            break
-          end
+          # The checksums did not account for every ISO this flavor expects, so
+          # it is not a match.  Keep looking rather than falling through and
+          # reporting the flavor with an empty ISO list.
+          next unless matched_isos.values.uniq.size == checksums.uniq.size
+
+          result      = flavor
+          result_isos = matched_isos.keys.dup
+          break
         end
 
         result = flavor
