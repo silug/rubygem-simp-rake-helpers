@@ -1,3 +1,28 @@
+### 6.1.0 / 2026-09-03
+- Added
+  - Absorbed `Simp::Build::ReleaseMapper` from the unmaintained
+    `simp-build-helpers` gem into `lib/simp/build/release_mapper.rb`, along with
+    its unit tests. `simp/rake/build/auto.rb` has always hard-required this
+    class, but it was never declared as a runtime dependency -- only as a
+    `Gemfile` entry -- so `gem install simp-rake-helpers` produced a `LoadError`
+    for the entire `Simp::Rake::Build::*` task tree.
+    - The last release of `simp-build-helpers` was 0.1.1 (2016-09-28), which
+      calls `File.exists?`. That method no longer exists in current Rubies, so
+      `rake build:auto` raised `NoMethodError` on its first ISO path check.
+      The fix had been committed to that project's `master` but never released.
+- Changed
+  - `Simp::Build::SIMPBuildException` now inherits from `StandardError` rather
+    than `Exception`, matching the other `SIMPBuildException` classes in this
+    project. `build:auto` wraps each distro/version/arch build in
+    `rescue StandardError`, so ISO mapping failures are now recorded per-ISO and
+    reported in the "Failed ISOs" summary (exit 1) instead of aborting the whole
+    run on the first failure.
+  - Dropped the `simp-build-helpers` `Gemfile` entry and removed it from the
+    acceptance-test build project scaffold.
+- Fixed
+  - Added the missing closing quote in the "Recognized SIMP ISOs for '<release>'"
+    error message header.
+
 ### 6.0.1 / 2026-08-26
 - Fixed
   - `pkg:check_version` no longer misreads CHANGELOG versions with a two-digit
